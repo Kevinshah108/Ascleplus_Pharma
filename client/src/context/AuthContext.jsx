@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password) => {
     try {
-      const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/signup', {
+      const res = await fetch('https://ascleplus-backend.onrender.com/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/login', {
+      const res = await fetch('https://ascleplus-backend.onrender.com/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -75,7 +75,7 @@ const deleteAccount = async () => {
     }
 
     // Inside deleteAccount function
-const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/delete', { // Check port 5000
+const res = await fetch('https://ascleplus-backend.onrender.com/auth/delete', { // Check port 5000
   method: 'DELETE',
   headers: { 
     'Content-Type': 'application/json',

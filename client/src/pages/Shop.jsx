@@ -17,7 +17,7 @@ const Shop = () => {
     try {
       setLoading(true);
       // Make sure this URL matches your backend port (5000)
-      const res = await axios.get('https://ascleplus-backend.onrender.com/api/products');
+      const res = await axios.get('https://ascleplus-backend.onrender.com/products');
       setProducts(res.data);
       setLoading(false);
     } catch (err) {
@@ -35,7 +35,7 @@ const Shop = () => {
   const handleSeedData = async () => {
     try {
       if(window.confirm("Add sample products to database?")) {
-        await axios.post('https://ascleplus-backend.onrender.com/api/products/seed');
+        await axios.post('https://ascleplus-backend.onrender.com/products/seed');
         alert("Success! Products added.");
         fetchProducts(); // Refresh list immediately
       }

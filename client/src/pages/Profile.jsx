@@ -32,7 +32,7 @@ const Profile = () => {
   const fetchOrders = async () => {
     try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('https://ascleplus-backend.onrender.com/api/auth/orders', {
+        const res = await axios.get('https://ascleplus-backend.onrender.com/auth/orders', {
             headers: { 'x-auth-token': token }
         });
         setOrders(res.data);
@@ -48,7 +48,7 @@ const Profile = () => {
     e.preventDefault();
     try {
         const token = localStorage.getItem('token');
-        const res = await axios.put('https://ascleplus-backend.onrender.com/api/auth/update', formData, {
+        const res = await axios.put('https://ascleplus-backend.onrender.com/auth/update', formData, {
             headers: { 'x-auth-token': token }
         });
         
