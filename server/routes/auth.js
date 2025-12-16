@@ -85,112 +85,65 @@ router.delete('/delete', auth, async (req, res) => {
 });
 
 // --- NEW USER FEATURES ---
-// --- NEW: UPDATE PROFILE ROUTE ---
 
+// Update Profile (Name, Phone, Address)
 router.put('/update', auth, async (req, res) => {
-
   const { name, phone, address } = req.body;
-
   try {
-
     let user = await User.findById(req.user.id);
-
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
-
-
-    // Update fields
-
     if (name) user.name = name;
-
-    if (phone) user.phone = phone;
-
-    if (address) user.address = address;
-
-
+    if (phone) user.phone = phone; // You need to add 'phone' to User model schema if not there
+    if (address) user.address = address; // Add 'address' to User model schema
 
     await user.save();
-
     
-
-    // Return updated user data (excluding password)
-
+    // Return updated user without password
     res.json({ 
-
         id: user.id, 
-
         name: user.name, 
-
         email: user.email, 
-
         phone: user.phone, 
-
         address: user.address,
-
         isFirstOrder: user.isFirstOrder 
-
     });
-
   } catch (err) {
-
+    console.error(err);
     res.status(500).send('Server Error');
-
   }
-
 });
 
-
-
-// --- NEW: GET USER ORDERS ---
-
+// Get User Orders
 router.get('/orders', auth, async (req, res) => {
-
     try {
-
         const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
-
         res.json(orders);
-
     } catch (err) {
-
         res.status(500).send('Server Error');
-
     }
-
 });
 
-
-
-// --- NEW: PLACE ORDER (For checkout later) ---
-
+// Place New Order
 router.post('/orders', auth, async (req, res) => {
-
-    const { items, totalAmount } = req.body;
-
+    const { items, totalAmount, shippingAddress } = req.body;
     try {
-
         const newOrder = new Order({
-
             user: req.user.id,
-
             items,
-
-            totalAmount
-
+            totalAmount,
+            shippingAddress
         });
-
         await newOrder.save();
+        
+        // Update isFirstOrder to false since they just bought something
+        await User.findByIdAndUpdate(req.user.id, { isFirstOrder: false });
 
         res.json(newOrder);
-
     } catch (err) {
-
+        console.error(err);
         res.status(500).send('Server Error');
-
     }
-
 });
-
-
 
 module.exports = router;
