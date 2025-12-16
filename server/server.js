@@ -8,7 +8,7 @@ const app = express();
 // --- 1. MIDDLEWARE ---
 // Allow React to talk to this server (CORS)
 app.use(cors({
-  origin: ["https://ascleplus-pharma.vercel.app/", "http://localhost:5173"], // Allow both Live & Local
+  origin: ["https://ascleplus-pharma.vercel.app", "http://localhost:5173"], // Allow both Live & Local
   credentials: true
 }));
 app.use(express.json());
