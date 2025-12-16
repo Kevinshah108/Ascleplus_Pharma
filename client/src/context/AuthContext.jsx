@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { api, setAuthToken } from '../api';
 
 const AuthContext = createContext();
 
@@ -10,56 +11,52 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user_data');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-    }
-    setLoading(false);
-  }, []);
+  const storedToken = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user_data');
+  
+  if (storedToken && storedUser) {
+    setAuthToken(storedToken); // Restore the token header
+    setUser(JSON.parse(storedUser));
+  }
+  setLoading(false);
+}, []);
 
   const signup = async (name, email, password) => {
-    try {
-      const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.msg || 'Signup failed');
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-  };
+  try {
+    // NOTICE: We just write '/auth/signup'. 
+    // The 'api' tool automatically adds 'https://.../api' to the front.
+    const res = await api.post('/auth/signup', { name, email, password });
+    
+    // If successful, save token
+    setAuthToken(res.data.token);
+    setUser(res.data.user);
+    return true;
+  } catch (err) {
+    console.error(err.response?.data?.msg || "Signup failed");
+    alert(err.response?.data?.msg || "Signup failed");
+    return false;
+  }
+};
 
   const login = async (email, password) => {
-    try {
-      const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.msg || 'Invalid Credentials');
-        return { success: false };
-      }
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user_data', JSON.stringify(data.user));
-      setToken(data.token);
-      setUser(data.user);
-      return { success: true, user: data.user };
-    } catch (err) {
-      console.error(err);
-      return { success: false };
+  try {
+    const res = await api.post('/auth/login', { email, password });
+    
+    setAuthToken(res.data.token);
+    setUser(res.data.user);
+    
+    // Check if user has saved data (for cart/profile)
+    if(res.data.user) {
+        localStorage.setItem('user_data', JSON.stringify(res.data.user));
     }
-  };
+
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.msg || "Invalid Credentials");
+    return { success: false };
+  }
+};
 
   // --- DELETE ACCOUNT FUNCTION (NEW) ---
   // Inside AuthProvider...
@@ -75,37 +72,27 @@ const deleteAccount = async () => {
     }
 
     // Inside deleteAccount function
-const res = await fetch('https://ascleplus-backend.onrender.com/api/auth/delete', { // Check port 5000
-  method: 'DELETE',
-  headers: { 
-    'Content-Type': 'application/json',
-    'x-auth-token': currentToken 
-  }
-});
+const deleteAccount = async () => {
+    try {
+      // The 'api' instance already has the token in the headers!
+      // No need to manually grab it from localStorage anymore.
+      await api.delete('/auth/delete');
 
-    // If server rejects it (e.g. 401 Unauthorized or 500 Error)
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Delete Failed:", errorData);
-      alert(errorData.msg || "Server rejected the delete request");
+      // If successful, log the user out locally
+      logout(); 
+      return true;
+
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.msg || "Failed to delete account");
       return false;
     }
-
-    // Success
-    logout(); 
-    return true;
-
-  } catch (err) {
-    console.error("Network Error:", err);
-    alert("Could not connect to server");
-    return false;
-  }
-};
+  };
 
   const logout = () => {
-    localStorage.clear();
-    setToken(null);
+    setAuthToken(null); // Removes token from API headers & LocalStorage
     setUser(null);
+    localStorage.removeItem('user_data');
   };
 
   return (

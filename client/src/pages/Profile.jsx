@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, MapPin, Edit2, Trash2, Package, Save, X } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../api'; // <--- IMPORT OUR NEW TOOL
 
 const Profile = () => {
   const { user, deleteAccount } = useAuth(); 
@@ -28,13 +28,12 @@ const Profile = () => {
     }
   }, [user]);
 
-  // Fetch Orders from Backend
+  // Fetch Orders
   const fetchOrders = async () => {
     try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('https://ascleplus-backend.onrender.com/api/auth/orders', {
-            headers: { 'x-auth-token': token }
-        });
+        // NOTICE: No long URL, No manual headers! 
+        // api.js handles the token automatically.
+        const res = await api.get('/auth/orders');
         setOrders(res.data);
         setLoadingOrders(false);
     } catch (err) {
@@ -47,18 +46,16 @@ const Profile = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-        const token = localStorage.getItem('token');
-        const res = await axios.put('https://ascleplus-backend.onrender.com/api/auth/update', formData, {
-            headers: { 'x-auth-token': token }
-        });
+        const res = await api.put('/auth/update', formData);
         
         alert("Profile Updated Successfully!");
+        setIsEditing(false);
         
         // Update Local Storage with new data immediately
         const updatedUser = { ...user, ...res.data };
         localStorage.setItem('user_data', JSON.stringify(updatedUser));
         
-        // Force reload to update Context (simplest way)
+        // Force reload to update Context
         window.location.reload(); 
         
     } catch (err) {

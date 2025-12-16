@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, X, RefreshCw } from 'lucide-react'; 
 import { useCart } from '../context/CartContext'; 
-import axios from 'axios';
+import { api } from '../api'; // <--- IMPORT API TOOL
 
 const Shop = () => {
   const [products, setProducts] = useState([]); 
@@ -12,12 +12,12 @@ const Shop = () => {
 
   const { addToCart, cartItems } = useCart();
 
-  // 1. Fetch Products from Backend
+  // 1. Fetch Products
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      // Make sure this URL matches your backend port (5000)
-      const res = await axios.get('https://ascleplus-backend.onrender.com/api/products');
+      // NOTICE: Simplified URL
+      const res = await api.get('/products');
       setProducts(res.data);
       setLoading(false);
     } catch (err) {
@@ -31,11 +31,11 @@ const Shop = () => {
     fetchProducts();
   }, []);
 
-  // 2. SEED DATA FUNCTION (Click this if list is empty)
+  // 2. SEED DATA FUNCTION
   const handleSeedData = async () => {
     try {
       if(window.confirm("Add sample products to database?")) {
-        await axios.post('https://ascleplus-backend.onrender.com/api/products/seed');
+        await api.post('/products/seed');
         alert("Success! Products added.");
         fetchProducts(); // Refresh list immediately
       }
@@ -46,7 +46,6 @@ const Shop = () => {
 
   // Helper to count items in cart
   const getCartQty = (product) => {
-    // We look for the item in the cart that matches this product's ID
     const productId = product._id || product.id;
     const foundItem = cartItems.find(item => (item._id || item.id) === productId);
     return foundItem ? foundItem.qty : 0;
@@ -62,7 +61,6 @@ const Shop = () => {
   const categories = ['All', ...new Set(products.map(p => p.category))];
 
   // --- UI ---
-
   if (loading) return (
     <div className="flex justify-center items-center h-screen text-emerald-600 font-bold">
       Loading Medicines...
